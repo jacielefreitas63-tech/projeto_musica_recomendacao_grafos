@@ -1,0 +1,31 @@
+// =============================================================
+// CONSULTA DE RECOMENDAÇÃO: FILTRAGEM COLABORATIVA VIA GRAFOS
+// =============================================================
+
+// 1. Identificamos o usuário alvo (Alice) e as músicas que ela já ouviu
+MATCH (u:Usuario {nome: "Alice"})-[h:OUVIU]->(m:Musica)
+
+// 2. Encontramos "vizinhos" (outros usuários que ouviram as MESMAS músicas que a Alice)
+MATCH (m)<-[:OUVIU]-(vizinho:Usuario)
+WHERE vizinho <> u
+
+// 3. Buscamos músicas que esses vizinhos ouviram, mas a Alice ainda não conhece
+MATCH (vizinho)-[r:OUVIU]->(recomendacao:Musica)
+WHERE NOT (u)-[:OUVIU]->(recomendacao)
+
+// 4. Agregamos os resultados para criar um ranking de relevância
+// Levamos em conta quantas pessoas indicaram e o volume de plays
+WITH recomendacao, 
+     COUNT(DISTINCT vizinho) AS sugestoes_de_amigos, 
+     SUM(r.vezes) AS popularidade_no_grupo
+     
+// 5. Buscamos o artista para deixar a resposta completa
+MATCH (recomendacao)-[:DO_ARTISTA]->(artista:Artista)
+
+// 6. Retorno formatado para o usuário
+RETURN recomendacao.titulo AS Musica Recomendada, 
+       artista.nome AS Artista, 
+       sugestoes_de_amigos AS Fãs em Comum,
+       popularidade_no_grupo AS Score de Popularidade
+ORDER BY sugestoes_de_amigos DESC, popularidade_no_grupo DESC
+LIMIT 5;
