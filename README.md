@@ -25,4 +25,4 @@ Abaixo, a execução de uma consulta que recomenda a música "Billie Jean" para 
 - *Cypher Query Language*: Linguagem para consulta e manipulação de grafos.
 
 ---
-Desenvolvido por [Seu Nome Aqui] como demonstração técnica de sistemas de recomendação.
+Desenvolvido por [Jaciele Freitas] como demonstração técnica de sistemas de recomendação.
