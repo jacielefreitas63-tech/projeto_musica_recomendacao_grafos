@@ -1,0 +1,66 @@
+// 1. LIMPEZA DO BANCO (Opcional: use apenas se quiser resetar o banco antes de começar)
+MATCH (n) DETACH DELETE n;
+
+// 2. CRIAÇÃO DE GÊNEROS
+CREATE (gRock:Genero {nome: "Rock"}),
+       (gPop:Genero {nome: "Pop"}),
+       (gIndie:Genero {nome: "Indie"});
+
+// 3. CRIAÇÃO DE ARTISTAS
+CREATE (aQueen:Artista {nome: "Queen", pais: "Reino Unido"}),
+       (aDuaLipa:Artista {nome: "Dua Lipa", pais: "Reino Unido"}),
+       (aArctic:Artista {nome: "Arctic Monkeys", pais: "Reino Unido"});
+
+// 4. CRIAÇÃO DE MÚSICAS E SEUS RELACIONAMENTOS FIXOS
+// (Música -> Artista e Música -> Gênero)
+CREATE (m1:Musica {titulo: "Bohemian Rhapsody", duracao: 354}),
+       (m2:Musica {titulo: "Don't Stop Me Now", duracao: 209}),
+       (m3:Musica {titulo: "Levitating", duracao: 203}),
+       (m4:Musica {titulo: "Don't Start Now", duracao: 183}),
+       (m5:Musica {titulo: "Do I Wanna Know?", duracao: 272});
+
+// Conectando Queen
+CREATE (m1)-[:DO_ARTISTA]->(aQueen), (m2)-[:DO_ARTISTA]->(aQueen),
+       (m1)-[:PERTENCE_AO_GENERO]->(gRock), (m2)-[:PERTENCE_AO_GENERO]->(gRock);
+
+// Conectando Dua Lipa
+CREATE (m3)-[:DO_ARTISTA]->(aDuaLipa), (m4)-[:DO_ARTISTA]->(aDuaLipa),
+       (m3)-[:PERTENCE_AO_GENERO]->(gPop), (m4)-[:PERTENCE_AO_GENERO]->(gPop);
+
+// Conectando Arctic Monkeys
+CREATE (m5)-[:DO_ARTISTA]->(aArctic), (m5)-[:PERTENCE_AO_GENERO]->(gIndie), (m5)-[:PERTENCE_AO_GENERO]->(gRock);
+
+// 5. CRIAÇÃO DE COMUNIDADES
+CREATE (c1:Comunidade {nome: "Lendas do Rock", descricao: "Fãs de clássicos"}),
+       (c2:Comunidade {nome: "Pop Chart", descricao: "As mais tocadas no rádio"});
+
+// 6. CRIAÇÃO DE USUÁRIOS E SUAS INTERAÇÕES (O Histórico de Escuta)
+CREATE (uAlice:Usuario {nome: "Alice", nivel: "Premium"}),
+       (uBruno:Usuario {nome: "Bruno", nivel: "Free"}),
+       (uCarla:Usuario {nome: "Carla", nivel: "Premium"}),
+       (uDiego:Usuario {nome: "Diego", nivel: "Free"});
+
+// Alice ouviu e curtiu Rock
+MATCH (u:Usuario {nome: "Alice"}), (m:Musica {titulo: "Bohemian Rhapsody"})
+CREATE (u)-[:OUVIU {vezes: 45, curtiu: true, ultima_vez: date('2024-02-15')}]->(m);
+
+MATCH (u:Usuario {nome: "Alice"}), (m:Musica {titulo: "Do I Wanna Know?"})
+CREATE (u)-[:OUVIU {vezes: 12, curtiu: true}]->(m);
+
+// Bruno também gosta de Rock (será o 'vizinho' da Alice)
+MATCH (u:Usuario {nome: "Bruno"}), (m:Musica {titulo: "Bohemian Rhapsody"})
+CREATE (u)-[:OUVIU {vezes: 30, curtiu: true}]->(m);
+
+MATCH (u:Usuario {nome: "Bruno"}), (m:Musica {titulo: "Don't Stop Me Now"})
+CREATE (u)-[:OUVIU {vezes: 20, curtiu: true}]->(m); // Esta será a recomendação para Alice!
+
+// Carla gosta de Pop
+MATCH (u:Usuario {nome: "Carla"}), (m:Musica {titulo: "Levitating"})
+CREATE (u)-[:OUVIU {vezes: 55, curtiu: true}]->(m);
+
+// Conectando usuários às comunidades
+MATCH (u1:Usuario {nome: "Alice"}), (u2:Usuario {nome: "Bruno"}), (c:Comunidade {nome: "Lendas do Rock"})
+CREATE (u1)-[:PARTICIPA_DE]->(c), (u2)-[:PARTICIPA_DE]->(c);
+
+MATCH (u:Usuario {nome: "Alice"})-[r]->(m)
+RETURN u, r, m;
